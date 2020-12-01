@@ -10,7 +10,11 @@ class GridSearch:
     decimals_key = '__decimals'
     mode_key = '__mode'
 
-    def fit(self, clf, X, y, params, fit_params={}, verbose=0, scoring_fn=ami, decimals=None):
+    def __init__(self, scoring_fn):
+        self.scoring_fn = scoring_fn.__get__(self)
+
+
+    def fit(self, clf, X, y, params, fit_params={}, verbose=0, decimals=None):
         if verbose > 0:
             print("Fitting...", end='')
         clf.fit(X, **fit_params)
@@ -36,18 +40,17 @@ class GridSearch:
                 setattr(clf, k, v)
             pred = clf.predict(X)
 
-            decimals_param = {}
+            self.decimals_param = {}
             if self.decimals_key in param_set.keys():
                 decimals = param_set[self.decimals_key]
             if decimals is not None:
-                decimals_param = dict(decimals=decimals)
+                self.decimals_param = dict(decimals=decimals)
 
-            mode_param = {}
+            self.mode_param = {}
             if self.mode_key in param_set.keys():
-                mode_param = dict(mode=param_set[self.mode_key])
+                self.mode_param = dict(mode=param_set[self.mode_key])
 
-            clsid = get_cluster_ids(pred, **decimals_param, **mode_param)
-            score = scoring_fn(y, clsid)
+            score = self.scoring_fn(pred, y, clf)
             res['params'].append(param_set)
             res['score'].append(score)
 
@@ -62,3 +65,14 @@ class GridSearch:
     def disp_res(self):
         with pd.option_context('display.max_colwidth', None, 'display.float_format', '{:.2%}'.format):
             display(self.get_res())
+
+
+class GridSearchCluster(GridSearch):
+
+    def fn(self, pred, y, clf):
+        clsid = get_cluster_ids(pred, **self.decimals_param, **self.mode_param)
+        score = ami(y, clsid)
+        return score
+
+    def __init__(self):
+        super().__init__(self.fn)
