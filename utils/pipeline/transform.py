@@ -36,7 +36,9 @@ class Pipeline:
 
     def __getattribute__(self, name):
         ret = super().__getattribute__(name)
-        if callable(ret):
+        if name == "VERBOSE_LEVEL":
+            return ret
+        if self.VERBOSE_LEVEL > 0 and callable(ret):
             print(">>", name)
         return ret
 
