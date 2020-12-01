@@ -8,7 +8,7 @@ from sklearn.cluster import KMeans
 
 from scipy.cluster.vq import vq
 
-from ..datasets import load_digits_784
+from ..datasets import load_digits_784, stratified_split
 
 @dataclass
 class Transformer:
@@ -43,7 +43,7 @@ class Transformer:
         minicols = self._cluster_minicolumns(hypercols, xb)
 
         self.codebook_encoder = Encoder(hypercols, minicols)
-        xlim, y_lim = xb[:self.N_LIM], y[:self.N_LIM]
+        xlim, y_lim = stratified_split(xb, y, self.N_LIM//np.unique(y).size)
         xlim_enc = self._encode(self.codebook_encoder, xlim)
 
         return xlim_enc, y_lim
