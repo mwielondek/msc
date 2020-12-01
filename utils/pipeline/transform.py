@@ -13,8 +13,8 @@ from ..datasets import load_digits_784, stratified_split
 @dataclass
 class Transformer:
 
-    N_RFIELDS: int = 12
-    N_CODEWORDS: int = 10
+    N_HYPERCOLS: int = 12
+    N_MINICOLS: int = 10
     N_BINS: int = 8
     N_LIM: int = 400
     N_MDS_COMPONENTS: int = 60
@@ -67,7 +67,7 @@ class Transformer:
         return xe
 
     def _cluster_hypercolumns(self, xe):
-        km = KMeans(n_clusters=self.N_RFIELDS)
+        km = KMeans(n_clusters=self.N_HYPERCOLS)
         km.fit(xe)
 
         labels = np.unique(km.labels_)
@@ -77,18 +77,18 @@ class Transformer:
         return hypercols
 
     def _cluster_minicolumns(self, hypercols, xb):
-        km = KMeans(n_clusters=self.N_CODEWORDS)
+        km = KMeans(n_clusters=self.N_MINICOLS)
         minicols = []
         for col in hypercols:
             km.fit(xb[:, col])
             minicols.append(km.cluster_centers_)
         return minicols
 
-    def _encode(self, encoder, xlim):
-        xlim_encoded = np.zeros((xlim.shape[0], self.N_RFIELDS), dtype=int)
-        for i, sample in enumerate(xlim):
-            xlim_encoded[i] = encoder.transform(sample)
-        return xlim_encoded
+    def _encode(self, encoder, x):
+        x_encoded = np.zeros((x.shape[0], self.N_HYPERCOLS), dtype=int)
+        for i, sample in enumerate(x):
+            x_encoded[i] = encoder.transform(sample)
+        return x_encoded
 
 
 
