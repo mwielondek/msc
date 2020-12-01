@@ -1,23 +1,17 @@
 from dataclasses import dataclass, field
 import numpy as np
-
-from BCPNN.recurrent_modular import rmBCPNN
-from BCPNN.encoder import OneHotEncoder, ComplementEncoder
-
-from parent.msc.utils.clusters import collect_cluster_ids
-from parent.msc.utils.datasets import stratified_split
-from parent.msc.utils.datasets import load_digits_784
-
 import warnings
-from sklearn import metrics
+
 from sklearn.manifold import MDS
-from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.preprocessing import KBinsDiscretizer
+from sklearn.cluster import KMeans
 
 from scipy.cluster.vq import vq
 
+from ..datasets import load_digits_784
+
 @dataclass
-class Pipeline:
+class Transformer:
 
     N_RFIELDS: int = 12
     N_CODEWORDS: int = 10
@@ -26,7 +20,7 @@ class Pipeline:
     N_MDS_COMPONENTS: int = 60
     VERBOSE_LEVEL: int = 1
 
-    data: np.ndarray = field(init=False, compare=False, default_factory=load_digits_784)
+    data: np.ndarray = field(init=False, compare=False, repr=False, default_factory=load_digits_784)
 
     def transform(self, x=None, y=None):
         if x is None:
@@ -51,10 +45,8 @@ class Pipeline:
         self.codebook_encoder = Encoder(hypercols, minicols)
         xlim, y_lim = xb[:self.N_LIM], y[:self.N_LIM]
         xlim_enc = self._encode(self.codebook_encoder, xlim)
-        self.clf_encoder = OneHotEncoder()
-        xlim_tr = self.clf_encoder.fit_transform(xlim_enc, recurrent=True)
 
-        return xlim_tr, y_lim
+        return xlim_enc, y_lim
 
 
     def _discretize(self, x):
