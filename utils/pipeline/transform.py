@@ -5,6 +5,7 @@ import warnings
 from sklearn.manifold import MDS
 from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.cluster import KMeans
+from sklearn.metrics.pairwise import cosine_similarity
 
 from scipy.cluster.vq import vq
 
@@ -57,9 +58,7 @@ class Transformer:
         return xb
 
     def _embed(self, xb):
-        similarity_matrix = np.corrcoef(xb.T)
-        # mask nan (where all values either 0 or 1 most likely)
-        similarity_matrix[np.isnan(similarity_matrix)] = 1
+        similarity_matrix = cosine_similarity(xb.T)
 
         embedding = MDS(dissimilarity='precomputed', n_components=self.N_MDS_COMPONENTS)
         xe = embedding.fit_transform(1 - similarity_matrix)
