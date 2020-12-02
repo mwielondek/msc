@@ -45,7 +45,7 @@ class Transformer:
 
         self.codebook_encoder = Encoder(hypercols, minicols)
         Xlim, y_lim = stratified_split(Xb, y, self.N_LIM//np.unique(y).size)
-        Xlim_enc = self._encode(self.codebook_encoder, Xlim)
+        Xlim_enc = self.codebook_encoder.transform(Xlim)
 
         return Xlim_enc, y_lim
 
@@ -83,13 +83,6 @@ class Transformer:
             minicols.append(km.cluster_centers_)
         return minicols
 
-    def _encode(self, encoder, X):
-        X_encoded = np.zeros((X.shape[0], self.N_HYPERCOLS), dtype=int)
-        for i, sample in enumerate(X):
-            X_encoded[i] = encoder.transform(sample)
-        return X_encoded
-
-
 
 @dataclass
 class Encoder:
@@ -97,12 +90,13 @@ class Encoder:
     hypercolumns: np.ndarray
     minicolumns: np.ndarray
 
-    def transform(self, sample):
-        sample_encoded = np.empty(self.hypercolumns.shape[0], dtype=int)
+    def transform(self, X):
+        n_samples, _ = X.shape
+        X_encoded = np.empty((n_samples, self.hypercolumns.shape[0]), dtype=int)
         for i, (hypercol, codebook) in enumerate(zip(self.hypercolumns, self.minicolumns)):
-            obs = sample[hypercol]
-            sample_encoded[i] = vq([obs], codebook)[0]
-        return sample_encoded
+            obs = X[:, hypercol]
+            X_encoded[:, i] = vq(obs, codebook)[0]
+        return X_encoded
 
     def inverse_transform(self, sample_encoded):
         sample_restored = np.empty(28*28)
