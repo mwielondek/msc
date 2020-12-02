@@ -23,11 +23,11 @@ class Transformer:
 
     data: np.ndarray = field(init=False, compare=False, repr=False, default_factory=load_digits_784)
 
-    def transform(self, x=None, y=None):
-        if x is None:
-            x, y = self.data
+    def transform(self, X=None, y=None):
+        if X is None:
+            X, y = self.data
 
-        return self._transform(x, y)
+        return self._transform(X, y)
 
     def __getattribute__(self, name):
         ret = super().__getattribute__(name)
@@ -37,37 +37,37 @@ class Transformer:
             print(">>", name)
         return ret
 
-    def _transform(self, x, y):
-        xb = self._discretize(x)
-        xe = self._embed(xb)
-        hypercols = self._cluster_hypercolumns(xe)
-        minicols = self._cluster_minicolumns(hypercols, xb)
+    def _transform(self, X, y):
+        Xb = self._discretize(X)
+        Xe = self._embed(Xb)
+        hypercols = self._cluster_hypercolumns(Xe)
+        minicols = self._cluster_minicolumns(hypercols, Xb)
 
         self.codebook_encoder = Encoder(hypercols, minicols)
-        xlim, y_lim = stratified_split(xb, y, self.N_LIM//np.unique(y).size)
-        xlim_enc = self._encode(self.codebook_encoder, xlim)
+        Xlim, y_lim = stratified_split(Xb, y, self.N_LIM//np.unique(y).size)
+        Xlim_enc = self._encode(self.codebook_encoder, Xlim)
 
-        return xlim_enc, y_lim
+        return Xlim_enc, y_lim
 
 
-    def _discretize(self, x):
+    def _discretize(self, X):
         kbins = KBinsDiscretizer(encode='ordinal', strategy='uniform', n_bins=self.N_BINS)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            xb = kbins.fit_transform(x)
-        return xb
+            Xb = kbins.fit_transform(X)
+        return Xb
 
-    def _embed(self, xb):
-        similarity_matrix = cosine_similarity(xb.T)
+    def _embed(self, Xb):
+        similarity_matrix = cosine_similarity(Xb.T)
 
         embedding = MDS(dissimilarity='precomputed', n_components=self.N_MDS_COMPONENTS)
-        xe = embedding.fit_transform(1 - similarity_matrix)
+        Xe = embedding.fit_transform(1 - similarity_matrix)
 
-        return xe
+        return Xe
 
-    def _cluster_hypercolumns(self, xe):
+    def _cluster_hypercolumns(self, Xe):
         km = KMeans(n_clusters=self.N_HYPERCOLS)
-        km.fit(xe)
+        km.fit(Xe)
 
         labels = np.unique(km.labels_)
         hypercols = np.empty(labels.size, dtype='object')
@@ -75,19 +75,19 @@ class Transformer:
             hypercols[i] = np.flatnonzero(km.labels_ == label)
         return hypercols
 
-    def _cluster_minicolumns(self, hypercols, xb):
+    def _cluster_minicolumns(self, hypercols, Xb):
         km = KMeans(n_clusters=self.N_MINICOLS)
         minicols = []
         for col in hypercols:
-            km.fit(xb[:, col])
+            km.fit(Xb[:, col])
             minicols.append(km.cluster_centers_)
         return minicols
 
-    def _encode(self, encoder, x):
-        x_encoded = np.zeros((x.shape[0], self.N_HYPERCOLS), dtype=int)
-        for i, sample in enumerate(x):
-            x_encoded[i] = encoder.transform(sample)
-        return x_encoded
+    def _encode(self, encoder, X):
+        X_encoded = np.zeros((X.shape[0], self.N_HYPERCOLS), dtype=int)
+        for i, sample in enumerate(X):
+            X_encoded[i] = encoder.transform(sample)
+        return X_encoded
 
 
 
