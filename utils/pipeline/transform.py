@@ -47,6 +47,10 @@ class Transformer:
         Xlim, y_lim = stratified_split(Xb, y, self.N_LIM//np.unique(y).size)
         Xlim_enc = self.codebook_encoder.transform(Xlim)
 
+        # add all vars to self with underscore for easy access
+        for var, val in locals().items():
+            setattr(self, var + '_', val)
+
         return Xlim_enc, y_lim
 
 
