@@ -60,7 +60,7 @@ class Transformer:
     def _embed(self, Xb):
         similarity_matrix = cosine_similarity(Xb.T)
 
-        embedding = MDS(dissimilarity='precomputed', n_components=self.N_MDS_COMPONENTS)
+        embedding = MDS(dissimilarity='precomputed', n_components=self.N_MDS_COMPONENTS, n_jobs=-1, n_init=2)
         Xe = embedding.fit_transform(1 - similarity_matrix)
 
         return Xe
@@ -76,7 +76,7 @@ class Transformer:
         return hypercols
 
     def _cluster_minicolumns(self, hypercols, Xb):
-        km = KMeans(n_clusters=self.N_MINICOLS)
+        km = KMeans(n_clusters=self.N_MINICOLS, n_init=2)
         minicols = []
         for col in hypercols:
             km.fit(Xb[:, col])
