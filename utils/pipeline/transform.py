@@ -42,16 +42,14 @@ class Transformer:
         Xe = self._embed(Xb)
         hypercols = self._cluster_hypercolumns(Xe)
         minicols = self._cluster_minicolumns(hypercols, Xb)
-
-        self.codebook_encoder = Encoder(hypercols, minicols)
-        Xlim, y_lim = stratified_split(Xb, y, self.N_LIM//np.unique(y).size)
-        Xlim_enc = self.codebook_encoder.transform(Xlim)
+        Xs, ys = self._slice(Xb, y)
+        Xs_enc = self._encode(Xs, hypercols, minicols)
 
         # add all vars to self with underscore for easy access
         for var, val in locals().items():
             setattr(self, var + '_', val)
 
-        return Xlim_enc, y_lim
+        return Xs_enc, ys
 
 
     def _discretize(self, X):
@@ -86,6 +84,13 @@ class Transformer:
             km.fit(Xb[:, col])
             minicols.append(km.cluster_centers_)
         return minicols
+
+    def _slice(self, Xb, y):
+        return stratified_split(Xb, y, self.N_LIM//np.unique(y).size)
+
+    def _encode(self, Xs, hypercols, minicols):
+        self.codebook_encoder_ = Encoder(hypercols, minicols)
+        return self.codebook_encoder_.transform(Xs)
 
 
 @dataclass
