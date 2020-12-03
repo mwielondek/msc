@@ -31,9 +31,9 @@ class Transformer:
 
     def __getattribute__(self, name):
         ret = super().__getattribute__(name)
-        if name == "VERBOSE_LEVEL":
+        if not name.startswith("_"):
             return ret
-        if self.VERBOSE_LEVEL > 0 and callable(ret):
+        elif self.VERBOSE_LEVEL > 0:
             print(">>", name)
         return ret
 
