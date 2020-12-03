@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 def get_unique_patterns(X):
     """Returns distinct pattern count"""
@@ -59,8 +60,15 @@ def collect_cluster_ids(clf, X, gvals, decimals=2, fit_params={}, predict_params
 
     return clusters.astype(int)
 
+previous_lap = time.time()
 def print_progress(i, n):
-    print("Progress: "+"#"*i + "-"*(n-i), end='\r')
+    global previous_lap
+    now = time.time()
+    lap_duration = now - previous_lap
+    est_time_left = (n-i) * lap_duration if i > 0 else 0
+    previous_lap = now
+    timerstr = "est time left: {:5.0f}s".format(est_time_left)
+    print("Progress: {}{} | {}".format("#"*i, "-"*(n-i), timerstr), end='\r')
 
 def get_distance(X):
     """Calculate hamming distance between patterns"""
