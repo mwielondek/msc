@@ -94,8 +94,8 @@ class Scorer:
 
 
     def run(self, X, y):
-        clusterings = self._collect_clusters(X)
-        results = dict(zip(['scores', 'params'], self._collect_metrics(clusterings, y)))
+        self.clusterings = self._collect_clusters(X)
+        results = dict(zip(['scores', 'params'], self._collect_metrics(self.clusterings, y)))
         self.results = self.ResultsDict(results, self.metrics)
 
     def _collect_clusters(self, X):
