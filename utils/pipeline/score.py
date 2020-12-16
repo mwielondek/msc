@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from functools import partial, update_wrapper
+from functools import partial, update_wrapper, cached_property
 
 from BCPNN.recurrent_modular import rmBCPNN
 from parent.msc.utils.clusters import collect_cluster_ids
@@ -126,8 +126,10 @@ class Scorer:
     class Clusterings(list):
 
         def __init__(self, arg, *, labels_true):
+            for d in arg:
+                d['clusterings'] = self.SubClusterings(d['clusterings'], labels_true=labels_true)
+
             super().__init__(arg)
-            self.labels_true = labels_true
 
         class SubClusterings(dict):
 
@@ -138,12 +140,13 @@ class Scorer:
             def first(self):
                 return next(iter(self.values()))
 
+            @cached_property
             def confusion_matrix(self):
                 return Scorer.ConfusionMatrix(self.labels_true, self.first())
 
         def __getitem__(self, key):
             value = super().__getitem__(key)
-            return self.SubClusterings(value['clusterings'], labels_true=self.labels_true)
+            return value['clusterings']
 
     class ConfusionMatrix(np.ndarray):
 
