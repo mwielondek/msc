@@ -7,6 +7,7 @@ from BCPNN.recurrent_modular import rmBCPNN
 from parent.msc.utils.clusters import collect_cluster_ids
 from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn import metrics
+import matplotlib.pyplot as plt
 
 class Wrappers:
 
@@ -41,7 +42,7 @@ class Wrappers:
 
 
     class RB:
-        gvals = np.linspace(0.5,0.64,12)
+        gvals = np.linspace(0.3,0.6,20)
 
         def __init__(self, limit=True):
             self.limit = limit
@@ -77,24 +78,9 @@ class Scorer:
             assert module_sizes is not None
             self.DEFAULT_CLFS[-1].module_sizes = module_sizes
 
-
-    class ResultsDict(dict):
-
-        def __init__(self, d, metrics):
-            super().__init__(d)
-
-            def to_pandas(self):
-                return pd.DataFrame(self, columns=['clf'] + [m.__name__ for m in metrics])
-
-            values_type = type(next(iter(d.values())))
-            PandasTransformableList = type("PandasTransformableList", (values_type,), {'to_pandas': to_pandas})
-
-            for k in self.keys():
-                self[k] = PandasTransformableList(self[k])
-
-
     def run(self, X, y):
-        self.clusterings = self._collect_clusters(X)
+        self.y = y
+        self.clusterings = self.Clusterings(self._collect_clusters(X), labels_true=y)
         results = dict(zip(['scores', 'params'], self._collect_metrics(self.clusterings, y)))
         self.results = self.ResultsDict(results, self.metrics)
 
@@ -120,3 +106,76 @@ class Scorer:
             results_params.append([str(clf), *sorted_params])
 
         return results_scores, results_params
+
+
+    class ResultsDict(dict):
+
+        def __init__(self, d, metrics):
+            super().__init__(d)
+
+            def to_pandas(self):
+                return pd.DataFrame(self, columns=['clf'] + [m.__name__ for m in metrics])
+
+            values_type = type(next(iter(d.values())))
+            PandasTransformableList = type("PandasTransformableList", (values_type,), {'to_pandas': to_pandas})
+
+            for k in self.keys():
+                self[k] = PandasTransformableList(self[k])
+
+
+    class Clusterings(list):
+
+        def __init__(self, arg, *, labels_true):
+            super().__init__(arg)
+            self.labels_true = labels_true
+
+        class SubClusterings(dict):
+
+            def __init__(self, arg, *, labels_true):
+                super().__init__(arg)
+                self.labels_true = labels_true
+
+            def first(self):
+                return next(iter(self.values()))
+
+            def confusion_matrix(self):
+                return Scorer.ConfusionMatrix(self.labels_true, self.first())
+
+        def __getitem__(self, key):
+            value = super().__getitem__(key)
+            return self.SubClusterings(value['clusterings'], labels_true=self.labels_true)
+
+    class ConfusionMatrix(np.ndarray):
+
+        def __new__(cls, labels_true, labels_pred):
+            labels_pred_matched = cls._match_labels(labels_true, labels_pred)
+            return metrics.confusion_matrix(labels_true, labels_pred_matched).view(cls)
+
+
+        def plot(self):
+            metrics.ConfusionMatrixDisplay(self).plot(cmap=plt.cm.Blues)
+
+        @staticmethod
+        def _match_labels(true_labels, pred_labels, cm=None):
+            """Match partitions with true clusters using max likelihood.
+
+            For each partitioning, assign a cluster based on which the most number of intra-partition samples
+            belong to, giving priority to partitions with highest number of samples belonging to a single cluster.
+            """
+            if cm is None:
+                cm = metrics.confusion_matrix(true_labels, pred_labels)
+                n_classes = np.unique(true_labels).size
+                max_idx = np.argsort(cm, axis=None)[::-1]
+                visited_true = []
+                visited_pred = []
+                trans_pred_true = np.full(n_classes,-1)
+                for m in max_idx:
+                    i, j = np.unravel_index(m, cm.shape)
+                    if not j in visited_true and not i in visited_pred:
+                        trans_pred_true[j] = i
+                        visited_true.append(j)
+                        visited_pred.append(i)
+                        if len(visited_true) == cm.shape[0]:
+                            assert set(trans_pred_true) == set(range(n_classes)), "incomplete matching"
+                            print(trans_pred_true)
+                            return trans_pred_true[pred_labels]
