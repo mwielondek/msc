@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 
+from functools import partial, update_wrapper
+
 from BCPNN.recurrent_modular import rmBCPNN
 from parent.msc.utils.clusters import collect_cluster_ids
 from sklearn.cluster import KMeans, AgglomerativeClustering
@@ -62,7 +64,9 @@ class Wrappers:
 
 class Scorer:
 
-    DEFAULT_METRICS = [metrics.fowlkes_mallows_score, metrics.completeness_score, metrics.homogeneity_score]
+    DEFAULT_METRICS = [metrics.fowlkes_mallows_score, metrics.completeness_score, metrics.homogeneity_score,
+                    metrics.normalized_mutual_info_score,
+                    update_wrapper(partial(metrics.f1_score, average='micro'), metrics.f1_score)]
     DEFAULT_CLFS = [Wrappers.AC(), Wrappers.KM(), Wrappers.RB(limit=True)]
 
     def __init__(self, metrics=None, clfs=None, module_sizes=None):
