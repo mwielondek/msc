@@ -148,7 +148,8 @@ class Scorer:
             @cached_property
             def similarity_matrix(self):
                 order = (-self.first()).argsort()
-                return Scorer.SimilarityMatrix(self.X[order])
+                cluster_sizes = np.unique(self.first(), return_counts=True)[1][::-1]
+                return Scorer.SimilarityMatrix(self.X[order], cluster_sizes)
 
         def __getitem__(self, key):
             value = super().__getitem__(key)
@@ -191,11 +192,17 @@ class Scorer:
 
     class SimilarityMatrix(np.ndarray):
 
-        def __new__(cls, X):
-            return metrics.pairwise.cosine_similarity(X).view(cls)
+        def __new__(cls, X, cluster_sizes):
+            obj = metrics.pairwise.cosine_similarity(X).view(cls)
+            obj.cluster_sizes = cluster_sizes
+            return obj
+
 
         def plot(self):
             f,a = plt.subplots()
             im = a.imshow(self, cmap='jet')
             plt.colorbar(im)
+            for axis in [a.xaxis, a.yaxis]:
+                axis.set_ticks(np.cumsum(self.cluster_sizes))
+                axis.set_ticklabels(range(self.cluster_sizes.size))
             return f,a
