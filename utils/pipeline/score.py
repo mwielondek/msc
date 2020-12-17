@@ -80,7 +80,7 @@ class Scorer:
 
     def run(self, X, y):
         self.y = y
-        self.clusterings = self.Clusterings(self._collect_clusters(X), labels_true=y)
+        self.clusterings = self.Clusterings(self._collect_clusters(X), labels_true=y, X=X)
         results = dict(zip(['scores', 'params'], self._collect_metrics(self.clusterings, y)))
         self.results = self.ResultsDict(results, self.metrics)
 
@@ -125,17 +125,18 @@ class Scorer:
 
     class Clusterings(list):
 
-        def __init__(self, arg, *, labels_true):
+        def __init__(self, arg, *, labels_true, X):
             for d in arg:
-                d['clusterings'] = self.SubClusterings(d['clusterings'], labels_true=labels_true)
+                d['clusterings'] = self.SubClusterings(d['clusterings'], labels_true=labels_true, X=X)
 
             super().__init__(arg)
 
         class SubClusterings(dict):
 
-            def __init__(self, arg, *, labels_true):
+            def __init__(self, arg, *, labels_true, X):
                 super().__init__(arg)
                 self.labels_true = labels_true
+                self.X = X
 
             def first(self):
                 return next(iter(self.values()))
@@ -143,6 +144,11 @@ class Scorer:
             @cached_property
             def confusion_matrix(self):
                 return Scorer.ConfusionMatrix(self.labels_true, self.first())
+
+            @cached_property
+            def similarity_matrix(self):
+                order = (-self.first()).argsort()
+                return Scorer.SimilarityMatrix(self.X[order])
 
         def __getitem__(self, key):
             value = super().__getitem__(key)
@@ -182,3 +188,14 @@ class Scorer:
                             assert set(trans_pred_true) == set(range(n_classes)), "incomplete matching"
                             print(trans_pred_true)
                             return trans_pred_true[pred_labels]
+
+    class SimilarityMatrix(np.ndarray):
+
+        def __new__(cls, X):
+            return metrics.pairwise.cosine_similarity(X).view(cls)
+
+        def plot(self):
+            f,a = plt.subplots()
+            im = a.imshow(self, cmap='jet')
+            plt.colorbar(im)
+            return f,a
