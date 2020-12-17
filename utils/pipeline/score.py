@@ -131,6 +131,27 @@ class Scorer:
 
             super().__init__(arg)
 
+        def __getitem__(self, key):
+            value = super().__getitem__(key)
+            return value['clusterings']
+
+        def plot_similarity_matrices(self):
+            self.plot_matrices('similarity_matrix')
+
+        def plot_confusion_matrices(self):
+            self.plot_matrices('confusion_matrix')
+
+        def plot_matrices(self, matrix):
+            f, axs = plt.subplots(1, len(self))
+            f.set_dpi(120)
+            for i,ax in enumerate(axs):
+                getattr(self[i], matrix).plot(ax, colorbar=False)
+
+            im = ax.get_images()[0]
+            f.colorbar(im, cax = f.add_axes([0.95, 0.33, 0.02, 0.35]))
+            return f
+
+
         class SubClusterings(dict):
 
             def __init__(self, arg, *, labels_true, X):
@@ -151,9 +172,6 @@ class Scorer:
                 cluster_sizes = np.unique(self.first(), return_counts=True)[1][::-1]
                 return Scorer.SimilarityMatrix(self.X[order], cluster_sizes)
 
-        def __getitem__(self, key):
-            value = super().__getitem__(key)
-            return value['clusterings']
 
     class ConfusionMatrix(np.ndarray):
 
@@ -162,8 +180,11 @@ class Scorer:
             return metrics.confusion_matrix(labels_true, labels_pred_matched).view(cls)
 
 
-        def plot(self):
-            metrics.ConfusionMatrixDisplay(self).plot(cmap=plt.cm.Blues)
+        def plot(self, ax=None, colorbar=True):
+            cmd = metrics.ConfusionMatrixDisplay(self).plot(cmap=plt.cm.Blues, ax=ax)
+            if not colorbar:
+                cmd.im_.colorbar.remove()
+            return cmd
 
         @staticmethod
         def _match_labels(true_labels, pred_labels, cm=None):
@@ -198,11 +219,13 @@ class Scorer:
             return obj
 
 
-        def plot(self):
-            f,a = plt.subplots()
+        def plot(self, a=None, colorbar=True):
+            if a is None:
+                _,a = plt.subplots()
             im = a.imshow(self, cmap='jet')
-            plt.colorbar(im)
+            if colorbar:
+                plt.colorbar(im)
             for axis in [a.xaxis, a.yaxis]:
                 axis.set_ticks(np.cumsum(self.cluster_sizes))
                 axis.set_ticklabels(range(self.cluster_sizes.size))
-            return f,a
+            return a
