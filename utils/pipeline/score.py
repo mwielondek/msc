@@ -179,6 +179,12 @@ class Scorer:
             labels_pred_matched = cls._match_labels(labels_true, labels_pred)
             return metrics.confusion_matrix(labels_true, labels_pred_matched).view(cls)
 
+        def normalized(self, mode='recall'):
+            if mode == 'recall':
+                axis = 1
+            elif mode == 'precision':
+                axis = 0
+            return self.astype('float') / self.sum(axis=axis)
 
         def plot(self, ax=None, colorbar=True):
             cmd = metrics.ConfusionMatrixDisplay(self).plot(cmap=plt.cm.Blues, ax=ax)
