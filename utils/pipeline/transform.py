@@ -23,7 +23,10 @@ class Transformer:
 
     data: np.ndarray = field(init=False, compare=False, repr=False, default_factory=load_digits_784)
 
-    def transform(self, X=None, y=None):
+    def transform(self, X=None, y=None, seed=None):
+        if seed is not None:
+            np.random.seed(seed)
+
         if X is None:
             X, y = self.data
 

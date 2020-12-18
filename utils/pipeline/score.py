@@ -79,7 +79,9 @@ class Scorer:
             assert module_sizes is not None
             self.DEFAULT_CLFS[-1].module_sizes = module_sizes
 
-    def run(self, X, y):
+    def run(self, X, y, seed=None):
+        if seed is not None:
+            np.random.seed(seed)
         self.y = y
         self.clusterings = self.Clusterings(self._collect_clusters(X), labels_true=y, X=X)
         results = dict(zip(['scores', 'params'], self._collect_metrics(self.clusterings, y)))
