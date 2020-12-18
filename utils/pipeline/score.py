@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 from functools import partial, update_wrapper, cached_property
+from operator import attrgetter
 
 from BCPNN.recurrent_modular import rmBCPNN
 from parent.msc.utils.clusters import collect_cluster_ids
@@ -139,13 +140,13 @@ class Scorer:
             self.plot_matrices('similarity_matrix')
 
         def plot_confusion_matrices(self):
-            self.plot_matrices('confusion_matrix')
+            self.plot_matrices('confusion_matrix.normalized')
 
         def plot_matrices(self, matrix):
             f, axs = plt.subplots(1, len(self))
             f.set_dpi(120)
             for i,ax in enumerate(axs):
-                getattr(self[i], matrix).plot(ax, colorbar=False)
+                attrgetter(matrix)(self[i]).plot(ax, colorbar=False)
 
             im = ax.get_images()[0]
             f.colorbar(im, cax = f.add_axes([0.95, 0.33, 0.02, 0.35]))
@@ -179,12 +180,16 @@ class Scorer:
             labels_pred_matched = cls._match_labels(labels_true, labels_pred)
             return metrics.confusion_matrix(labels_true, labels_pred_matched).view(cls)
 
-        def normalized(self, mode='recall'):
+        def normalize(self, mode='recall'):
             if mode == 'recall':
                 axis = 1
             elif mode == 'precision':
                 axis = 0
             return self.astype('float') / self.sum(axis=axis)
+
+        @property
+        def normalized(self):
+            return self.normalize('recall')
 
         def plot(self, ax=None, colorbar=True):
             cmd = metrics.ConfusionMatrixDisplay(self).plot(cmap=plt.cm.Blues, ax=ax)
