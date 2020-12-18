@@ -148,6 +148,7 @@ class Scorer:
 
             for i,ax in enumerate(axs):
                 attrgetter(matrix)(self[i]).plot(ax, colorbar=False)
+                ax.set_title(super().__getitem__(i)['clf'])
 
             im = ax.get_images()[0]
             f.colorbar(im, cax = f.add_axes([0.95, 0.33, 0.02, 0.35]))
