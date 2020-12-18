@@ -137,19 +137,25 @@ class Scorer:
             return value['clusterings']
 
         def plot_similarity_matrices(self):
-            self.plot_matrices('similarity_matrix')
+            return self.plot_matrices('similarity_matrix')
 
         def plot_confusion_matrices(self):
-            self.plot_matrices('confusion_matrix.normalized')
+            return self.plot_matrices('confusion_matrix.normalized')
 
         def plot_matrices(self, matrix):
-            f, axs = plt.subplots(1, len(self))
-            f.set_dpi(120)
+            n_cols = len(self)
+            f, axs = plt.subplots(1, n_cols)
+
             for i,ax in enumerate(axs):
                 attrgetter(matrix)(self[i]).plot(ax, colorbar=False)
 
             im = ax.get_images()[0]
             f.colorbar(im, cax = f.add_axes([0.95, 0.33, 0.02, 0.35]))
+
+            w = len(self) * 8
+            h = w // 2
+            f.set_size_inches(w,h)
+
             return f
 
 
