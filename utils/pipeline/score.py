@@ -7,6 +7,7 @@ from operator import attrgetter
 from BCPNN.recurrent_modular import rmBCPNN
 from parent.msc.utils.clusters import collect_cluster_ids, binary_search
 from sklearn.cluster import KMeans, AgglomerativeClustering
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 from sklearn import metrics
 import matplotlib.pyplot as plt
 
@@ -62,6 +63,21 @@ class Wrappers:
                 cls = collect_cluster_ids(clf, x, self.gvals)
             d = dict(zip(self.gvals, cls))
             assert len(d) > 0
+            return d
+
+
+    class LDA:
+        #Needs to be manually fitted prior to adding it to DEFAULT_CLFS
+
+        def __repr__(self):
+            return "LDA"
+
+        def __init__(self, x, y):
+            self.clf = LDA().fit(x, y)
+
+        def get_clusters(self, x):
+            pred = self.clf.predict(x)
+            d = dict(lda=pred)
             return d
 
 class Scorer:
