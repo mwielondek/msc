@@ -12,6 +12,34 @@ def round_patterns(X, decimals=2, mode='truncate'):
     elif mode == 'round':
         return X.round(decimals=decimals)
 
+def get_num_clusters(X, **kwargs):
+    return len(get_unique_patterns(round_patterns(X, **kwargs)))
+
+def binary_search(clf, X, k=10, low=0, high=100, delta=1e-3, verbose=2):
+    iters = 0
+    max_iter = np.log2((high - low) * 1/delta)
+    if verbose > 0:
+        print("Running binary search, max iters:", max_iter)
+
+    while iters < max_iter:
+        iters += 1
+        g = low + (high - low) / 2
+        clf.g = g
+        pred = clf.predict(X)
+        n = get_num_clusters(pred)
+        if verbose > 1:
+            print("iter {:<2}: g={:.5f} >> n={}".format(iters, g, n))
+        if n == k:
+            if verbose > 0:
+                print("Found value after {} iterations".format(np.floor(iters)))
+            return g
+        elif n < k:
+            low = g
+        elif n > k:
+            high = g
+
+    raise UserWarning('couldnt find proper value for g')
+
 def get_cluster_arrays(X, oneindexed=False, **kwargs):
     """Returns an array of clusters, where each value corresponds to sample ID"""
     clusters = {}

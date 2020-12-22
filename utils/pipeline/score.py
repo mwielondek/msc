@@ -5,7 +5,7 @@ from functools import partial, update_wrapper, cached_property
 from operator import attrgetter
 
 from BCPNN.recurrent_modular import rmBCPNN
-from parent.msc.utils.clusters import collect_cluster_ids
+from parent.msc.utils.clusters import collect_cluster_ids, binary_search
 from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn import metrics
 import matplotlib.pyplot as plt
@@ -54,13 +54,13 @@ class Wrappers:
         def get_clusters(self, x):
             clf = rmBCPNN(verbose=False)
             clf.fit(x, module_sizes=self.module_sizes)
-            cls = collect_cluster_ids(clf, x, self.gvals)
-            d = dict(zip(self.gvals, cls))
             if self.limit:
-                # filter for only those that have 10 clusters (or closest to 10)
-                cls_len = np.array([np.unique(x).size for x in cls])
-                closest = cls_len[np.array(abs(cls_len - 10)).argmin()]
-                d = {k:v for k,v in d.items() if np.unique(v).size == closest}
+                g = binary_search(clf, x, verbose=1)
+                print("Found value for g using binary search:", g)
+                cls = collect_cluster_ids(clf, x, np.array([g]))
+            else:
+                cls = collect_cluster_ids(clf, x, self.gvals)
+            d = dict(zip(self.gvals, cls))
             assert len(d) > 0
             return d
 
