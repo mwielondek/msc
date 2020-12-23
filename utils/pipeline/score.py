@@ -3,6 +3,8 @@ import pandas as pd
 
 from functools import partial, update_wrapper, cached_property
 from operator import attrgetter
+from contextlib import redirect_stdout
+from sys import stdout
 
 from BCPNN.recurrent_modular import rmBCPNN
 from parent.msc.utils.clusters import collect_cluster_ids, binary_search
@@ -105,9 +107,10 @@ class Scorer:
         if seed is not None:
             np.random.seed(seed)
         self.y = y
-        self.clusterings = self.Clusterings(self._collect_clusters(X), labels_true=y, X=X)
-        results = dict(zip(['scores', 'params'], self._collect_metrics(self.clusterings, y)))
-        self.results = self.ResultsDict(results, self.metrics)
+        with redirect_stdout(None if not self.verbose else stdout):
+            self.clusterings = self.Clusterings(self._collect_clusters(X), labels_true=y, X=X)
+            results = dict(zip(['scores', 'params'], self._collect_metrics(self.clusterings, y)))
+            self.results = self.ResultsDict(results, self.metrics)
 
     def _collect_clusters(self, X):
         return [dict(clf=clf, clusterings=clf.get_clusters(X)) for clf in self.clfs]
