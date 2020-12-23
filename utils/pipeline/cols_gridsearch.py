@@ -26,9 +26,11 @@ class WrapperClf(Transformer):
         clf = rmBCPNN(verbose=False)
         clf.fit(xt, module_sizes=enc.module_sizes_)
 
-        gval = binary_search(clf, xt, verbose=0, k=self.k)
-
-        cls = self.get_clusters(clf, xt, np.array([gval]))
+        try:
+            gval = binary_search(clf, xt, verbose=0, k=self.k)
+            cls = self.get_clusters(clf, xt, np.array([gval]))
+        except UserWarning:
+            cls = dict(failed=np.full(len(y), 0))
 
         return cls
 
