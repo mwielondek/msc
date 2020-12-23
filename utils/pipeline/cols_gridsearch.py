@@ -53,7 +53,7 @@ class GridSearch(GS):
         clf = WrapperClf(VERBOSE_LEVEL=0, data=(X, y), **kwargs)
         clf.k = np.unique(y).size
         self.fit(clf, None, None, params, verbose=verbose)
-        return list(self.get_res().iloc[0].params.values())
+        return self.get_res().iloc[0].params
 
     @staticmethod
     def pivot(res):
