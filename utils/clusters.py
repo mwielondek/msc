@@ -85,6 +85,7 @@ def collect_cluster_ids(clf, X, gvals, decimals=2, fit_params={}, predict_params
         pred = clf.predict(X, **predict_params)
         clusters[idx] = get_cluster_ids(pred, **decimals_param, **kwargs)
         print_progress(idx + 1, gvals.size)
+    print(' ' * 79, end='\r')
 
     return clusters.astype(int)
 
