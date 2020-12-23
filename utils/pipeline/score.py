@@ -13,8 +13,13 @@ import matplotlib.pyplot as plt
 
 class Wrappers:
 
+    k = 10
+
     class KM:
-        n_cls = [10] #range(2,15)
+
+        @property
+        def n_cls(self):
+            return [Wrappers.k]
 
         def __repr__(self):
             return "kMeans"
@@ -37,7 +42,7 @@ class Wrappers:
         def get_clusters(self, x):
             clusterings = {}
             for l in self.linkage:
-                clf = AgglomerativeClustering(n_clusters=10, linkage=l)
+                clf = AgglomerativeClustering(n_clusters=Wrappers.k, linkage=l)
                 clf.fit(x)
                 clusterings[l] = clf.labels_
             return clusterings
@@ -56,7 +61,7 @@ class Wrappers:
             clf = rmBCPNN(verbose=False)
             clf.fit(x, module_sizes=self.module_sizes)
             if self.limit:
-                g = binary_search(clf, x, verbose=1)
+                g = binary_search(clf, x, verbose=1, k=Wrappers.k)
                 print("Found value for g using binary search:", g)
                 cls = collect_cluster_ids(clf, x, np.array([g]))
             else:
