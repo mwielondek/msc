@@ -181,7 +181,7 @@ class Scorer:
             w = len(self) * 8
             h = w // 2
             f.set_size_inches(w,h)
-
+            plt.close()
             return f
 
 
