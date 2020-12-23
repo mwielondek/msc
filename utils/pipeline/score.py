@@ -61,8 +61,8 @@ class Wrappers:
             clf = rmBCPNN(verbose=False)
             clf.fit(x, module_sizes=self.module_sizes)
             if self.limit:
-                g = binary_search(clf, x, verbose=1, k=Wrappers.k)
-                print("Found value for g using binary search:", g)
+                g = binary_search(clf, x, verbose=0, k=Wrappers.k)
+                print("G-value for k={}: {:.4f}".format(Wrappers.k, g))
                 cls = collect_cluster_ids(clf, x, np.array([g]))
             else:
                 cls = collect_cluster_ids(clf, x, self.gvals)
