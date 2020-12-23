@@ -38,7 +38,7 @@ class WrapperClf(Transformer):
         return max(scores)
 
     def get_clusters(self, clf, x, gvals):
-        cls = collect_cluster_ids(clf, x, gvals)
+        cls = collect_cluster_ids(clf, x, gvals, verbose=0)
         d = dict(zip(gvals, cls))
         assert len(d) > 0
         return d

@@ -60,7 +60,7 @@ def get_cluster_ids(X, **kwargs):
             arr[sample] = cidx
     return arr
 
-def collect_cluster_ids(clf, X, gvals, decimals=2, fit_params={}, predict_params={}, **kwargs):
+def collect_cluster_ids(clf, X, gvals, decimals=2, fit_params={}, predict_params={}, verbose=1, **kwargs):
     """Get cluster IDs as a function of g values"""
     n_samples, _ = X.shape
     n_gvals = len(gvals)
@@ -79,13 +79,16 @@ def collect_cluster_ids(clf, X, gvals, decimals=2, fit_params={}, predict_params
 
         decimals_param = dict(decimals=decimals)
 
-    print_progress(0, gvals.size)
+    if verbose > 0:
+        print_progress(0, gvals.size)
     for idx, g in enumerate(gvals):
         clf.g = g
         pred = clf.predict(X, **predict_params)
         clusters[idx] = get_cluster_ids(pred, **decimals_param, **kwargs)
-        print_progress(idx + 1, gvals.size)
-    print(' ' * 79, end='\r')
+        if verbose > 0:
+            print_progress(idx + 1, gvals.size)
+    if verbose > 0:
+        print(' ' * 79, end='\r')
 
     return clusters.astype(int)
 
