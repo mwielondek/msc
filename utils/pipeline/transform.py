@@ -20,12 +20,12 @@ class Transformer:
     N_LIM: int = 400
     N_MDS_COMPONENTS: int = 60
     VERBOSE_LEVEL: int = 1
+    SEED: int = 1
 
     data: (np.ndarray, np.ndarray) = field(init=True, compare=False, repr=False, default_factory=load_digits_784)
 
-    def transform(self, X=None, y=None, seed=None):
-        if seed is not None:
-            np.random.seed(seed)
+    def transform(self, X=None, y=None):
+        np.random.seed(self.SEED)
 
         if X is None:
             X, y = self.data
