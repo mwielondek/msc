@@ -92,9 +92,10 @@ class Scorer:
                     update_wrapper(partial(metrics.f1_score, average='micro'), metrics.f1_score)]
     DEFAULT_CLFS = [Wrappers.AC(), Wrappers.KM(), Wrappers.RB(limit=True)]
 
-    def __init__(self, metrics=None, clfs=None, module_sizes=None):
+    def __init__(self, metrics=None, clfs=None, module_sizes=None, verbose=1):
         self.metrics = metrics or self.DEFAULT_METRICS
         self.clfs = clfs or self.DEFAULT_CLFS
+        self.verbose = verbose
 
         if clfs is None:
             assert module_sizes is not None
@@ -120,7 +121,8 @@ class Scorer:
 
             scores = np.empty((len(cls_dict), len(self.metrics)))
             for i, clustering in enumerate(cls_dict.values()):
-                print(f"{clf!s:>14}:\t {np.unique(clustering).size} clusters")
+                if self.verbose > 0:
+                    print(f"{clf!s:>14}:\t {np.unique(clustering).size} clusters")
                 scores[i] = [m(true_y, clustering) for m in self.metrics]
 
             results_scores.append([str(clf), *np.max(scores, axis=0)])
@@ -228,7 +230,7 @@ class Scorer:
             return cmd
 
         @staticmethod
-        def _match_labels(true_labels, pred_labels, cm=None):
+        def _match_labels(true_labels, pred_labels, cm=None, output_transl_table=False):
             """Match partitions with true clusters using max likelihood.
 
             For each partitioning, assign a cluster based on which the most number of intra-partition samples
@@ -249,7 +251,8 @@ class Scorer:
                         visited_pred.append(i)
                         if len(visited_true) == cm.shape[0]:
                             assert set(trans_pred_true) == set(range(n_classes)), "incomplete matching"
-                            print(trans_pred_true)
+                            if output_transl_table:
+                                print(trans_pred_true)
                             return trans_pred_true[pred_labels]
 
     class SimilarityMatrix(np.ndarray):
