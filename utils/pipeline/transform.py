@@ -89,7 +89,7 @@ class Transformer:
         return minicols
 
     def _slice(self, Xb, y):
-        return stratified_split(Xb, y, self.N_LIM//np.unique(y).size)
+        return stratified_split(Xb, y, self.N_LIM//np.unique(y).size, adjust_down=False, warn=False)
 
     def _encode(self, Xs, hypercols, minicols):
         self.codebook_encoder_ = Encoder(hypercols, minicols)
