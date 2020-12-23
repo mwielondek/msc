@@ -15,19 +15,22 @@ class GridSearch:
 
 
     def fit(self, clf, X, y, params, fit_params={}, verbose=0, decimals=None):
+        res = dict(params=[], score=[])
+        params = ParameterGrid(params)
+        if verbose > 0:
+            print("Param combinations:", len(params))
+
         if verbose > 0:
             print("Fitting...", end='')
         clf.fit(X, **fit_params)
         if verbose > 0:
             print(" ✔︎")
 
-        if verbose > 0:
             nl = '\n'
             if verbose == 1:
                 nl = ''
             print("Predicting...", end=nl)
-        res = dict(params=[], score=[])
-        params = ParameterGrid(params)
+
         for i, param_set in enumerate(params):
             if verbose > 0:
                 if verbose > 1:
