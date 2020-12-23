@@ -38,7 +38,7 @@ def binary_search(clf, X, k=10, low=0, high=100, delta=1e-3, verbose=2):
         elif n > k:
             high = g
 
-    raise UserWarning('couldnt find proper value for g')
+    raise UserWarning('couldnt find proper value for g for k =', k)
 
 def get_cluster_arrays(X, oneindexed=False, **kwargs):
     """Returns an array of clusters, where each value corresponds to sample ID"""
