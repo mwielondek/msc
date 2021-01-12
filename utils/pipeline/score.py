@@ -65,6 +65,7 @@ class Wrappers:
             if self.limit:
                 g = binary_search(clf, x, verbose=0, k=Wrappers.k)
                 print("G-value for k={}: {:.4f}".format(Wrappers.k, g))
+                self.gvals = [g]
                 cls = collect_cluster_ids(clf, x, np.array([g]), verbose=0)
             else:
                 cls = collect_cluster_ids(clf, x, self.gvals, verbose=0)
