@@ -219,9 +219,11 @@ class Scorer:
         def normalize(self, mode='recall'):
             if mode == 'recall':
                 axis = 1
+                divisor = self.sum(axis=axis).reshape((-1,1))
             elif mode == 'precision':
                 axis = 0
-            return self.astype('float') / self.sum(axis=axis)
+                divisor = self.sum(axis=axis).reshape((1,-1))
+            return self.astype('float') / divisor
 
         @property
         def normalized(self):
