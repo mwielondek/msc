@@ -96,8 +96,8 @@ class Scorer:
     DEFAULT_CLFS = [Wrappers.AC(), Wrappers.KM(), Wrappers.RB(limit=True)]
 
     def __init__(self, metrics=None, clfs=None, module_sizes=None, verbose=1):
-        self.metrics = metrics or self.DEFAULT_METRICS
-        self.clfs = clfs or self.DEFAULT_CLFS
+        self.metrics = metrics or self.DEFAULT_METRICS[:]
+        self.clfs = clfs or self.DEFAULT_CLFS[:]
         self.verbose = verbose
 
         if clfs is None:
