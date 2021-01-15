@@ -2,9 +2,10 @@ from dataclasses import dataclass, field
 import numpy as np
 import warnings
 
-from sklearn.manifold import Isomap
+from sklearn.manifold import Isomap, MDS
 from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.cluster import KMeans
+from sklearn.metrics.pairwise import cosine_distances
 
 from scipy.cluster.vq import vq
 
@@ -62,8 +63,16 @@ class Transformer:
         return Xb
 
     def _embed(self, Xb):
-        embedding = Isomap(n_components=self.N_MDS_COMPONENTS, n_jobs=-1) # default metric = minkowski, p2 = l2 = eucld
-        Xe = embedding.fit_transform(Xb.T)
+        try:
+            # default metric = minkowski, p2 = l2 = eucld
+            embedding = Isomap(n_components=self.N_MDS_COMPONENTS, n_jobs=-1)
+            Xe = embedding.fit_transform(Xb.T)
+
+        except ValueError:
+            warnings.warn(f"Isomap failed for n_components={self.N_MDS_COMPONENTS}, reverting to MDS")
+            distances = cosine_distances(Xb.T)
+            embedding = MDS(dissimilarity='precomputed', n_components=self.N_MDS_COMPONENTS, n_jobs=-1, n_init=2)
+            Xe = embedding.fit_transform(distances)
 
         return Xe
 
