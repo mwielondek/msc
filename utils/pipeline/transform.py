@@ -56,7 +56,7 @@ class Transformer:
 
 
     def _discretize(self, X):
-        kbins = KBinsDiscretizer(encode='ordinal', strategy='uniform', n_bins=self.N_BINS)
+        kbins = KBinsDiscretizer(encode='ordinal', strategy='kmeans', n_bins=self.N_BINS)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             Xb = kbins.fit_transform(X)
