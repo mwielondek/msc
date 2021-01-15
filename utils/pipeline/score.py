@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from functools import partial, update_wrapper, cached_property
+from functools import cached_property
 from operator import attrgetter
 from contextlib import redirect_stdout
 from sys import stdout
@@ -91,8 +91,7 @@ class Wrappers:
 class Scorer:
 
     DEFAULT_METRICS = [metrics.fowlkes_mallows_score, metrics.completeness_score, metrics.homogeneity_score,
-                    metrics.normalized_mutual_info_score,
-                    update_wrapper(partial(metrics.f1_score, average='micro'), metrics.f1_score)]
+                    metrics.normalized_mutual_info_score]
     DEFAULT_CLFS = [Wrappers.AC(), Wrappers.KM(), Wrappers.RB(limit=True)]
 
     def __init__(self, metrics=None, clfs=None, module_sizes=None, verbose=1):
