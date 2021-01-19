@@ -73,6 +73,10 @@ class Wrappers:
             assert len(d) > 0
             return d
 
+        @staticmethod
+        def _get_parent_cls():
+            return Wrappers
+
 
     class LDA:
         #Needs to be manually fitted prior to adding it to DEFAULT_CLFS
