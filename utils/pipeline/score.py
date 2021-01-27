@@ -36,7 +36,7 @@ class Wrappers:
 
 
     class AC:
-        linkage = ['ward', 'average', 'complete', 'single']
+        linkage = ['ward']#, 'average', 'complete', 'single']
 
         def __repr__(self):
             return "Agglomerative"
@@ -94,8 +94,7 @@ class Wrappers:
 
 class Scorer:
 
-    DEFAULT_METRICS = [metrics.fowlkes_mallows_score, metrics.completeness_score, metrics.homogeneity_score,
-                    metrics.normalized_mutual_info_score]
+    DEFAULT_METRICS = [metrics.fowlkes_mallows_score, metrics.completeness_score, metrics.homogeneity_score]
     DEFAULT_CLFS = [Wrappers.AC(), Wrappers.KM(), Wrappers.RB(limit=True)]
 
     def __init__(self, metrics=None, clfs=None, module_sizes=None, verbose=1):
